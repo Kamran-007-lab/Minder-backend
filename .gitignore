@@ -2,8 +2,10 @@
 
 # dependencies
 node_modules
+Atlas-configuration.txt
 
 # misc
+.env
 .DS_Store
 .env.local
 .env.development.local
