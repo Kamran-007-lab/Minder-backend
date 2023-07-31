@@ -6,6 +6,7 @@ node_modules
 # Sensitive data
 Atlas-configuration.txt
 Enviroment variables.txt
+Test-user-data.txt
 
 # misc
 .env
