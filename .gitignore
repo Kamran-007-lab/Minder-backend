@@ -2,7 +2,10 @@
 
 # dependencies
 node_modules
+
+# Sensitive data
 Atlas-configuration.txt
+Enviroment variables.txt
 
 # misc
 .env

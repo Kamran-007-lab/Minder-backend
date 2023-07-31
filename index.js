@@ -7,14 +7,13 @@ connecTtoMongo();
 const app = express();
 const port = process.env.PORT;
 
-app.get("/", (req, res) => {
-  try {
-    res.send("Hello World!");
-  } catch (error) {
-    console.log(error);
-  }
-});
+app.use(express.json())
+
+//Available routes
+app.use('/api/auth', require('./routes/auth'))
+
+
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Minder app is listening on port ${port}`);
 });
