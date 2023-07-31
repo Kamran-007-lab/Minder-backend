@@ -12,15 +12,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 router.post(
   "/createuser",
   [
-    body("first_name", "First name must be of minimum length 3")
-      .isLength({ min: 3 })
-      .isAlpha(),
-    body("last_name", "Last name must be of minimum length 2")
-      .isLength({ min: 2 })
-      .isAlpha(),
-    body("username", "Username must be of minimum length 3").isLength({
-      min: 3,
-    }),
     body("email", "Enter Valid email").isEmail(),
     body(
       "password",
@@ -48,20 +39,10 @@ router.post(
           .json({ error: "You have already registered with this email!" });
       }
 
-      // Check whether the user with the same email exists already
-      user = await User.findOne({ usernme: req.body.username });
-      if (user) {
-        return res
-          .status(400)
-          .json({ error: "Sorry username already in use!" });
-      }
       const salt = await bcrypt.genSalt(10);
       const secPass = await bcrypt.hash(req.body.password, salt);
 
       user = await User.create({
-        first_name: req.body.first_name,
-        last_name: req.body.last_name,
-        username: req.body.username,
         email: req.body.email,
         password: secPass,
       });
