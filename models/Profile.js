@@ -29,6 +29,10 @@ const ProfileSchema = new Schema({
   },
   date_of_birth: {
     type: Date
+  },
+  profile_img:{
+    data:Buffer,
+    contentType: String
   }
 });
 
