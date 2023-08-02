@@ -18,6 +18,10 @@ const ProfileSchema = new Schema({
   last_name: {
     type: String,
   },
+  profile_img:{
+    data:Buffer,
+    contentType: String
+  }
 });
 
 const Profile = mongoose.model("profile", ProfileSchema);
