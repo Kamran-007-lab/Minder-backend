@@ -102,8 +102,8 @@ router.post(
   }
 );
 
-// ROUTE 3: Update user profile details using: POST "api/profile/updateprofile" - Login Required
-router.post("/updateprofile", fetchuser, async (req, res) => {
+// ROUTE 3: Update user profile details using: PUT "api/profile/updateprofile" - Login Required
+router.put("/updateprofile/:id", fetchuser, async (req, res) => {
   try {
     const { first_name, last_name } = req.body;
 
@@ -116,10 +116,37 @@ router.post("/updateprofile", fetchuser, async (req, res) => {
       newProfile.last_name = last_name;
     }
 
-    const profile = await Profile.findOneAndUpdate(
-      { user: req.user.id },
-      { $set: newProfile }
+    //Find the profile to be updated and check if it is the same user's profile
+    let profile = await Profile.findById(req.params.id);
+    if (!profile) {
+      return res.status(404).send("Not found");
+    }
+
+    if (profile.user.toString() !== req.user.id) {
+      return res.status(401).send("Not allowed");
+    }
+
+    profile = await Profile.findByIdAndUpdate(
+      req.params.id,
+      { $set: newProfile },
+      { new: true }
     );
+    res.json({ profile });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal server error !");
+  }
+});
+
+// ROUTE 4: Get all user profiles except own using: GET "api/profile/getallprofile" - Login Required
+router.get("/getallprofile", fetchuser, async (req, res) => {
+  try {
+    const ownprofile = await Profile.find({ user: req.user.id });
+    const profile = await Profile.find();
+    const index = profile.indexOf(ownprofile);
+    console.log(ownprofile);
+    // profile.splice(index, 1);
+    res.json(profile);
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Internal server error !");

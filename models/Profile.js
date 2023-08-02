@@ -18,6 +18,18 @@ const ProfileSchema = new Schema({
   last_name: {
     type: String,
   },
+  gender: {
+    type: String,
+  },
+  dating_prefrence: {
+    type: String,
+  },
+  bio: {
+    type: String,
+  },
+  date_of_birth: {
+    type: Date
+  },
   profile_img:{
     data:Buffer,
     contentType: String
