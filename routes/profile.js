@@ -18,16 +18,16 @@ router.get("/getprofile", fetchuser, async (req, res) => {
 
 //
 const Storage = multer.diskStorage({
-  destination:'profileImages',
-  filename: (req,file,cb) => {
-    cb(null,Date.now()+file.originalname);
+  destination: "profileImages",
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + file.originalname);
   },
 });
 
 //image upload middleware
 const upload = multer({
-  storage: Storage
-}).single('profileImg')
+  storage: Storage,
+}).single("profileImg");
 
 // ROUTE 2: Add user profile details using: POST "api/profile/createprofile" - Login Required
 router.post(
@@ -54,48 +54,23 @@ router.post(
           .status(400)
           .json({ error: "username already in use, try another !" });
       }
-      // const { username, first_name, last_name, profile_img } = req.body;
 
       //   If there are errors return bad request and the errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
-      // upload(req,res,(err)=>{
-      //   if (err) {
-      //     console.log(err);
-      //   }
-      //   else{
-      //     const profile = new Profile({
-      //       username: req.body.username,
-      //       first_name: req.body.first_name,
-      //       last_name: req.body.last_name,
-      //       profile_img:{
-      //         data:req.file.filename,
-      //         contentType:'image/png'
-      //       }
-      //     })
-      //     profile.save()
-      //     .then(()=>res.send('successfully uploaded profile'))
-      //     .catch(err=>console.log(err));
-      //   }
-      // });
+
       const profile = new Profile({
-        // username,
-        // first_name,
-        // last_name,
-        // profile_img,
-        // user: req.user.id,
-        
-        username : req.body.username,
-        first_name : req.body.first_name,
-        last_name : req.body.last_name,
-        gender : req.body.gender,
-        dating_prefrence : req.body.dating_prefrence,
-        bio : req.body.bio,
-        date_of_birth : req.body.date_of_birth,
-        image : req.file.filename,
-        user : req.user.id
+        username: req.body.username,
+        first_name: req.body.first_name,
+        last_name: req.body.last_name,
+        gender: req.body.gender,
+        dating_prefrence: req.body.dating_prefrence,
+        bio: req.body.bio,
+        date_of_birth: req.body.date_of_birth,
+        image: req.file.filename,
+        user: req.user.id,
       });
       const userProfile = await profile.save();
       res.json(userProfile);
