@@ -8,6 +8,7 @@ connecTtoMongo();
 const app = express();
 const port = process.env.PORT;
 app.use(cors());
+app.use(express.static("profileImages"));
 
 app.use(express.json());
 
