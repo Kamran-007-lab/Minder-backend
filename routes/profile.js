@@ -7,16 +7,20 @@ const multer = require("multer");
 
 // ROUTE 1: Get user profile details using: GET "api/profile/getprofile" - Login Required
 router.get("/getprofile", fetchuser, async (req, res) => {
+  let success = false;
   try {
     const profile = await Profile.find({ user: req.user.id });
-    res.json(profile);
+    if (profile) {
+      success = true;
+      res.json({ success, profile });
+    }
   } catch (error) {
-    console.error(error.message);
-    res.status(500).send("Internal server error !");
+    success = false;
+    res.status(500).send({ success, error: "Internal server error !" });
   }
 });
 
-//
+// Defining profile images destination folder
 const Storage = multer.diskStorage({
   destination: "profileImages",
   filename: (req, file, cb) => {
@@ -46,19 +50,22 @@ router.post(
     }),
   ],
   async (req, res) => {
+    let success = false;
     try {
       // Check whether username is already taken
       let user = await Profile.findOne({ username: req.body.username });
       if (user) {
+        success = false;
         return res
           .status(400)
-          .json({ error: "username already in use, try another !" });
+          .json({ success, error: "Username already in use, try another !" });
       }
 
       //   If there are errors return bad request and the errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        success = false;
+        return res.status(400).json({ success });
       }
 
       const profile = new Profile({
@@ -73,10 +80,11 @@ router.post(
         user: req.user.id,
       });
       const userProfile = await profile.save();
-      res.json(userProfile);
+      success = true;
+      res.json({ success, userProfile });
     } catch (error) {
-      console.error(error.message);
-      res.status(500).send("Internal server error !");
+      success = false;
+      res.status(500).send({ success, error: "Internal server error !" });
     }
   }
 );
@@ -84,10 +92,14 @@ router.post(
 // ROUTE 3: Update user profile details using: PUT "api/profile/updateprofile" - Login Required
 router.put("/updateprofile/:id", fetchuser, async (req, res) => {
   try {
-    const { first_name, last_name } = req.body;
+    const { username, first_name, last_name } = req.body;
 
     //Create New profile details object
     const newProfile = {};
+
+    if (username) {
+      newProfile.username = username;
+    }
     if (first_name) {
       newProfile.first_name = first_name;
     }
@@ -96,7 +108,7 @@ router.put("/updateprofile/:id", fetchuser, async (req, res) => {
     }
 
     //Find the profile to be updated and check if it is the same user's profile
-    let profile = await Profile.findById(req.params.id);
+    let profile = await Profile.findByIdAndUpdate(req.params.id);
     if (!profile) {
       return res.status(404).send("Not found");
     }
