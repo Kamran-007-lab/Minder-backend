@@ -4,6 +4,7 @@ const fetchuser = require("../middleware/fetchuser");
 const Profile = require("../models/Profile");
 const { body, validationResult } = require("express-validator");
 const multer = require("multer");
+const cloudinary = require("../utils/cloudinary");
 
 // ROUTE 1: Get user profile details using: GET "api/profile/getprofile" - Login Required
 router.get("/getprofile", fetchuser, async (req, res) => {
@@ -139,7 +140,7 @@ router.get("/getallprofile", fetchuser, async (req, res) => {
     const index = profiles.findIndex(
       (profile) => profile.username === ownprofile.username
     );
-    console.log(index);
+    // console.log(index);
     if (index !== -1) {
       profiles.splice(index, 1);
     }
