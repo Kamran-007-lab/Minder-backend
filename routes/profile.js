@@ -9,10 +9,12 @@ const multer = require("multer");
 router.get("/getprofile", fetchuser, async (req, res) => {
   let success = false;
   try {
-    const profile = await Profile.find({ user: req.user.id });
+    const profile = await Profile.findOne({ user: req.user.id });
     if (profile) {
       success = true;
       res.json({ success, profile });
+    } else {
+      res.json({ success, profile: null });
     }
   } catch (error) {
     success = false;
@@ -89,7 +91,7 @@ router.post(
   }
 );
 
-// ROUTE 3: Update user profile details using: PUT "api/profile/updateprofile" - Login Required
+// ROUTE 3: Update user profile details using: PUT "api/profile/updateprofile/:id" - Login Required
 router.put("/updateprofile/:id", fetchuser, async (req, res) => {
   try {
     const { username, first_name, last_name } = req.body;
@@ -124,23 +126,46 @@ router.put("/updateprofile/:id", fetchuser, async (req, res) => {
     );
     res.json({ profile });
   } catch (error) {
-    console.error(error.message);
     res.status(500).send("Internal server error !");
   }
 });
 
 // ROUTE 4: Get all user profiles except own using: GET "api/profile/getallprofile" - Login Required
 router.get("/getallprofile", fetchuser, async (req, res) => {
+  let success = false;
   try {
-    const ownprofile = await Profile.find({ user: req.user.id });
-    const profile = await Profile.find();
-    const index = profile.indexOf(ownprofile);
-    console.log(ownprofile);
-    // profile.splice(index, 1);
-    res.json(profile);
+    const ownprofile = await Profile.findOne({ user: req.user.id });
+    const profiles = await Profile.find();
+    const index = profiles.findIndex(
+      (profile) => profile.username === ownprofile.username
+    );
+    console.log(index);
+    if (index !== -1) {
+      profiles.splice(index, 1);
+    }
+
+    success = true;
+    res.json({ success, profiles });
   } catch (error) {
     console.error(error.message);
-    res.status(500).send("Internal server error !");
+    res.status(500).send({ success, error: "Internal server error !" });
+  }
+});
+
+// ROUTE 5: Get specific user profile details using: GET "api/profile/getprofile/:id" - Login Required
+router.get("/getprofile/:id", fetchuser, async (req, res) => {
+  let success = false;
+  try {
+    const profile = await Profile.findById(req.params.id);
+    if (profile) {
+      success = true;
+      res.json({ success, profile });
+    } else {
+      res.json({ success, profile: null });
+    }
+  } catch (error) {
+    success = false;
+    res.status(500).send({ success, error: "Internal server error !" });
   }
 });
 
