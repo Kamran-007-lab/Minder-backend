@@ -7,6 +7,7 @@ node_modules
 Atlas-configuration.txt
 Enviroment variables.txt
 Test-user-data.txt
+/tmp
 
 # misc
 .env

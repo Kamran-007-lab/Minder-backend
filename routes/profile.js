@@ -3,7 +3,6 @@ const router = express.Router();
 const fetchuser = require("../middleware/fetchuser");
 const Profile = require("../models/Profile");
 const { body, validationResult } = require("express-validator");
-const multer = require("multer");
 const cloudinary = require("../utils/cloudinary");
 
 // ROUTE 1: Get user profile details using: GET "api/profile/getprofile" - Login Required
@@ -23,23 +22,9 @@ router.get("/getprofile", fetchuser, async (req, res) => {
   }
 });
 
-// Defining profile images destination folder
-const Storage = multer.diskStorage({
-  destination: "profileImages",
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + file.originalname);
-  },
-});
-
-//image upload middleware
-const upload = multer({
-  storage: Storage,
-}).single("profileImg");
-
 // ROUTE 2: Add user profile details using: POST "api/profile/createprofile" - Login Required
 router.post(
   "/createprofile",
-  upload,
   fetchuser,
   [
     body("first_name", "First name must be of minimum length 3")
@@ -58,6 +43,7 @@ router.post(
       // Check whether username is already taken
       let user = await Profile.findOne({ username: req.body.username });
       if (user) {
+        console.log(req.file);
         success = false;
         return res
           .status(400)
@@ -70,6 +56,11 @@ router.post(
         success = false;
         return res.status(400).json({ success });
       }
+      
+      const file = req.files.profileImg;
+      const result = await cloudinary.uploader.upload(file.tempFilePath, {
+        folder: req.body.username,
+      });
 
       const profile = new Profile({
         username: req.body.username,
@@ -79,9 +70,11 @@ router.post(
         dating_prefrence: req.body.dating_prefrence,
         bio: req.body.bio,
         date_of_birth: req.body.date_of_birth,
-        image: req.file.filename,
+        image: [result.url],
         user: req.user.id,
       });
+
+
       const userProfile = await profile.save();
       success = true;
       res.json({ success, userProfile });
@@ -171,3 +164,16 @@ router.get("/getprofile/:id", fetchuser, async (req, res) => {
 });
 
 module.exports = router;
+
+// // Defining profile images destination folder
+// const Storage = multer.diskStorage({
+//   destination: "profileImages",
+//   filename: (req, file, cb) => {
+//     cb(null, Date.now() + file.originalname);
+//   },
+// });
+
+// //image upload middleware
+// const upload = multer({
+//   storage: Storage,
+// }).single("profileImg");

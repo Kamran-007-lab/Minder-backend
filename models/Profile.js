@@ -17,22 +17,28 @@ const ProfileSchema = new Schema({
   },
   last_name: {
     type: String,
+    required: true,
   },
   gender: {
     type: String,
+    required: true,
   },
   dating_prefrence: {
     type: String,
+    required: true,
   },
   bio: {
     type: String,
   },
   date_of_birth: {
-    type: Date
+    type: Date,
+    required: true,
   },
-  image : {
-    type: String
-  }
+  image: [
+    {
+      type: String,
+    },
+  ],
 });
 
 const Profile = mongoose.model("profile", ProfileSchema);

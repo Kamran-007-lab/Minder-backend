@@ -2,13 +2,18 @@ const connecTtoMongo = require("./db");
 const express = require("express");
 const dotenv = require("dotenv").config();
 const cors = require("cors");
+const fileUpload = require("express-fileupload");
 
 connecTtoMongo();
 
 const app = express();
 const port = process.env.PORT;
+app.use(
+  fileUpload({
+    useTempFiles: true,
+  })
+);
 app.use(cors());
-app.use(express.static("profileImages"));
 
 app.use(express.json());
 
