@@ -44,6 +44,11 @@ const ProfileSchema = new Schema({
     of: Boolean,
     default: {},
   },
+  mymatches: [
+    {
+      type: String,
+    },
+  ],
 });
 
 const Profile = mongoose.model("profile", ProfileSchema);

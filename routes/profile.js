@@ -228,4 +228,45 @@ router.put("/uploadphotos/:id", fetchuser, async (req, res) => {
   }
 });
 
+// ROUTE 7: Swipe a user left or right and return if the current user has matched with the swiped user or not using: PUT "api/profile/swipe" - Login Required
+router.put("/swipe", fetchuser, async (req, res) => {
+  let success = false;
+  let profile = await Profile.findOne({ user: req.user.id });
+  if (!profile) {
+    return res.status(404).send("Not found");
+  }
+
+  if (profile.user.toString() !== req.user.id) {
+    return res.status(401).send("Not allowed");
+  }
+
+  try {
+    const { userid, matchUsername, isMatched } = req.body;
+    // Update the matches map
+    profile.matches.set(matchUsername, isMatched);
+
+    profile = await profile.save(); // Save the updated profile
+    let otherprofile = await Profile.findById(userid);
+
+    const hasMatch = otherprofile.matches.has(profile.username);
+    if (hasMatch) {
+      const matchValue = otherprofile.matches.get(profile.username);
+      if (matchValue) {
+        // Add the ID of the profile to otherprofile's mymatches array
+        otherprofile.mymatches.push(profile._id);
+        await otherprofile.save();
+        // Add the ID of the otherprofile to profile's mymatches array
+        profile.mymatches.push(otherprofile._id);
+        await profile.save();
+      }
+      res.json({ success, matchValue });
+    } else {
+      res.json({ success, matchValue: false });
+    }
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ success, error: "Internal server error !" });
+  }
+});
+
 module.exports = router;
