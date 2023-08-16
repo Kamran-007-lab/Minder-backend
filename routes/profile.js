@@ -87,7 +87,15 @@ router.post(
 // ROUTE 3: Update user profile details using: PUT "api/profile/updateprofile/:id" - Login Required
 router.put("/updateprofile/:id", fetchuser, async (req, res) => {
   try {
-    const { username, first_name, last_name } = req.body;
+    const {
+      username,
+      first_name,
+      last_name,
+      gender,
+      dating_prefrence,
+      bio,
+      date_of_birth,
+    } = req.body;
 
     //Create New profile details object
     const newProfile = {};
@@ -100,6 +108,18 @@ router.put("/updateprofile/:id", fetchuser, async (req, res) => {
     }
     if (last_name) {
       newProfile.last_name = last_name;
+    }
+    if (gender) {
+      newProfile.gender = gender;
+    }
+    if (dating_prefrence) {
+      newProfile.dating_prefrence = dating_prefrence;
+    }
+    if (bio) {
+      newProfile.bio = bio;
+    }
+    if (date_of_birth) {
+      newProfile.date_of_birth = date_of_birth;
     }
 
     //Find the profile to be updated and check if it is the same user's profile
@@ -123,7 +143,7 @@ router.put("/updateprofile/:id", fetchuser, async (req, res) => {
   }
 });
 
-// ROUTE 4: Get all user profiles except own using: GET "api/profile/getallprofile" - Login Required
+// ROUTE 4: Get all user profiles except own and remove those who have already been swiped using: GET "api/profile/getallprofile" - Login Required
 router.get("/getallprofile", fetchuser, async (req, res) => {
   let success = false;
   try {
@@ -137,8 +157,16 @@ router.get("/getallprofile", fetchuser, async (req, res) => {
       profiles.splice(index, 1);
     }
 
+    // Get the usernames present in the matches map
+    const matchedUsernames = Array.from(ownprofile.matches.keys());
+
+    // Filter out profiles that have usernames in the matchedUsernames array
+    const filteredProfiles = profiles.filter(
+      (profile) => !matchedUsernames.includes(profile.username)
+    );
+
     success = true;
-    res.json({ success, profiles });
+    res.json({ success, profiles: filteredProfiles });
   } catch (error) {
     console.error(error.message);
     res.status(500).send({ success, error: "Internal server error !" });
