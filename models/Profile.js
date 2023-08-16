@@ -39,6 +39,11 @@ const ProfileSchema = new Schema({
       type: String,
     },
   ],
+  matches: {
+    type: Map,
+    of: Boolean,
+    default: {},
+  },
 });
 
 const Profile = mongoose.model("profile", ProfileSchema);

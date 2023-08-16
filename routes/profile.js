@@ -56,7 +56,7 @@ router.post(
         success = false;
         return res.status(400).json({ success });
       }
-      
+
       const file = req.files.profileImg;
       const result = await cloudinary.uploader.upload(file.tempFilePath, {
         folder: req.body.username,
@@ -73,7 +73,6 @@ router.post(
         image: [result.url],
         user: req.user.id,
       });
-
 
       const userProfile = await profile.save();
       success = true;
@@ -163,17 +162,42 @@ router.get("/getprofile/:id", fetchuser, async (req, res) => {
   }
 });
 
+// ROUTE 6: Upload more photos to gallery using: POST "api/profile/uploadphotos" - Login Required
+router.put("/uploadphotos/:id", fetchuser, async (req, res) => {
+  let success = false;
+
+  //Find the profile to be updated and check if it is the same user's profile
+  let profile = await Profile.findByIdAndUpdate(req.params.id);
+  if (!profile) {
+    return res.status(404).send("Not found");
+  }
+
+  if (profile.user.toString() !== req.user.id) {
+    return res.status(401).send("Not allowed");
+  }
+
+  let username = profile.username;
+
+  try {
+    const files = req.files.images; // Assuming 'images' is the field name for multiple file uploads
+
+    const imageUrls = [];
+
+    for (const file of files) {
+      const result = await cloudinary.uploader.upload(file.tempFilePath, {
+        folder: username,
+      });
+      imageUrls.push(result.url);
+    }
+
+    // Append the new image URLs to the existing array
+    profile.image = profile.image.concat(imageUrls);
+
+    profile = await profile.save(); // Save the updated profile
+    res.json({ profile });
+  } catch (error) {
+    res.status(500).send("Internal server error !");
+  }
+});
+
 module.exports = router;
-
-// // Defining profile images destination folder
-// const Storage = multer.diskStorage({
-//   destination: "profileImages",
-//   filename: (req, file, cb) => {
-//     cb(null, Date.now() + file.originalname);
-//   },
-// });
-
-// //image upload middleware
-// const upload = multer({
-//   storage: Storage,
-// }).single("profileImg");
