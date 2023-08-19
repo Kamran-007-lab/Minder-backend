@@ -20,6 +20,7 @@ app.use(express.json());
 //Available routes
 app.use("/api/auth", require("./routes/auth")); // For all authentication related end points
 app.use("/api/profile", require("./routes/profile")); // To create and modify user profile data
+app.use("/api/chat", require("./routes/chat")); // To access all chats
 
 app.listen(port, () => {
   console.log(`Minder app is listening on port ${port}`);

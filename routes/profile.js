@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const fetchuser = require("../middleware/fetchuser");
-const Profile = require("../models/Profile");
 const { body, validationResult } = require("express-validator");
+const Profile = require("../models/Profile");
 const cloudinary = require("../utils/cloudinary");
 
 // ROUTE 1: Get user profile details using: GET "api/profile/getprofile" - Login Required
@@ -86,6 +86,7 @@ router.post(
 
 // ROUTE 3: Update user profile details using: PUT "api/profile/updateprofile/:id" - Login Required
 router.put("/updateprofile/:id", fetchuser, async (req, res) => {
+  let success = false;
   try {
     const {
       username,
@@ -137,9 +138,11 @@ router.put("/updateprofile/:id", fetchuser, async (req, res) => {
       { $set: newProfile },
       { new: true }
     );
-    res.json({ profile });
+    success = true;
+    res.json({ success, profile });
   } catch (error) {
-    res.status(500).send("Internal server error !");
+    success = false;
+    res.status(500).send({ success, error: "Internal server error !" });
   }
 });
 
@@ -168,6 +171,7 @@ router.get("/getallprofile", fetchuser, async (req, res) => {
     success = true;
     res.json({ success, profiles: filteredProfiles });
   } catch (error) {
+    success = false;
     console.error(error.message);
     res.status(500).send({ success, error: "Internal server error !" });
   }
@@ -190,7 +194,7 @@ router.get("/getprofile/:id", fetchuser, async (req, res) => {
   }
 });
 
-// ROUTE 6: Upload more photos to gallery using: POST "api/profile/uploadphotos" - Login Required
+// ROUTE 6: Upload more photos to gallery using: PUT "api/profile/uploadphotos" - Login Required
 router.put("/uploadphotos/:id", fetchuser, async (req, res) => {
   let success = false;
 
@@ -207,8 +211,12 @@ router.put("/uploadphotos/:id", fetchuser, async (req, res) => {
   let username = profile.username;
 
   try {
-    const files = req.files.images; // Assuming 'images' is the field name for multiple file uploads
-
+    const files = req.files
+      ? Array.isArray(req.files.images)
+        ? req.files.images
+        : [req.files.images]
+      : [];
+    // Assuming 'images' is the field name for multiple file uploads
     const imageUrls = [];
 
     for (const file of files) {
@@ -222,9 +230,12 @@ router.put("/uploadphotos/:id", fetchuser, async (req, res) => {
     profile.image = profile.image.concat(imageUrls);
 
     profile = await profile.save(); // Save the updated profile
-    res.json({ profile });
+    success = true;
+    res.json({ success, profile });
   } catch (error) {
-    res.status(500).send("Internal server error !");
+    success = false;
+    console.log(error);
+    res.status(500).send({ success, error: "Internal server error !" });
   }
 });
 
@@ -249,6 +260,8 @@ router.put("/swipe", fetchuser, async (req, res) => {
     let otherprofile = await Profile.findById(userid);
 
     const hasMatch = otherprofile.matches.has(profile.username);
+
+    success = true;
     if (hasMatch) {
       const matchValue = otherprofile.matches.get(profile.username);
       if (matchValue) {
@@ -259,10 +272,33 @@ router.put("/swipe", fetchuser, async (req, res) => {
         profile.mymatches.push(otherprofile._id);
         await profile.save();
       }
-      res.json({ success, matchValue });
+      res.json({ success, matchValue, ownprofile: profile });
     } else {
-      res.json({ success, matchValue: false });
+      res.json({ success, matchValue: false, ownprofile: profile });
     }
+  } catch (error) {
+    success = false;
+    console.error(error.message);
+    res.status(500).send({ success, error: "Internal server error !" });
+  }
+});
+
+// ROUTE 8: Get all user profiles except own: GET "api/profile/getalltheprofile" - Login Required
+router.get("/getalltheprofile", fetchuser, async (req, res) => {
+  let success = false;
+  try {
+    const ownprofile = await Profile.findOne({ user: req.user.id });
+    const profiles = await Profile.find();
+    const index = profiles.findIndex(
+      (profile) => profile.username === ownprofile.username
+    );
+    // console.log(index);
+    if (index !== -1) {
+      profiles.splice(index, 1);
+    }
+
+    success = true;
+    res.json({ success, profiles: profiles });
   } catch (error) {
     console.error(error.message);
     res.status(500).send({ success, error: "Internal server error !" });
