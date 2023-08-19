@@ -47,9 +47,11 @@ router.post("/accesschat", fetchuser, async (req, res) => {
       isGroupChat: false,
       users: [req.user.id, userid],
     };
+    
     try {
       const myprofile = await Profile.findOne({ user: req.user.id });
       const otherprofile = await Profile.findOne({ user: userid });
+      console.log(otherprofile)
       const createdChat = await Chat.create(chatdata);
       const Fullchat = await Chat.findOne({ _id: createdChat._id }).populate(
         "users",
@@ -91,7 +93,7 @@ router.get("/fetchchats", fetchuser, async (req, res) => {
       const otherprofile = await Profile.findOne({
         user: response[i].users[1],
       });
-      finalres.push({ response, myprofile, otherprofile });
+      finalres.push({ response: response[i], myprofile, otherprofile });
     }
     res.status(200).send({ success, finalres });
   } catch (error) {
